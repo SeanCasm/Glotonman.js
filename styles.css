@@ -1,0 +1,84 @@
+h1,
+h2,
+h3,
+h4,
+p {
+    color: aliceblue;
+    font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande", "Lucida Sans Unicode", Geneva, Verdana,
+        sans-serif;
+}
+body {
+    background-color: rgb(36, 42, 48);
+}
+button:hover {
+    transform: scale(1.1);
+    box-shadow: 5px 5px rgba(0, 0, 0, 0.178);
+}
+.stats{
+    background-color: rgb(70, 48, 90);
+    border: 2px dashed darkcyan;
+    display: flex;
+    margin: auto;
+    justify-content: space-evenly;
+}
+.game-grid {
+    background-color: black;
+    border: 2px dashed;
+    width: 500px;
+    height: 400px;
+    box-shadow: 20px 20px rgba(0, 0, 0, 0.178);
+}
+.game-grid-limits {
+    border: 2.5px darkblue solid;
+    height: 395px;
+}
+.player {
+    animation: playerAnim 0.5s infinite;
+    position: relative;
+    width: 9px;
+    height: 13px;
+    background-image: url("/img/gloton/g1.png");
+}
+.move-up-player {
+    transform: rotate(-90deg);
+}
+.move-down-player {
+    transform: rotate(90deg);
+}
+.move-left-player {
+    transform: rotate(-180deg);
+}
+.move-right-player {
+}
+.fruit-1{
+    position: relative;
+    animation: fruits 2s infinite;
+    background-image: url('/img/fruits/f1.png');
+    width: 12px;
+    height: 12px;
+}
+@keyframes playerAnim {
+    20% {
+        background-image: url("/img/gloton/g1.png");
+    }
+    40% {
+        background-image: url("/img/gloton/g2.png");
+    }
+    60% {
+        background-image: url("/img/gloton/g3.png");
+    }
+    80% {
+        background-image: url("/img/gloton/g2.png");
+    }
+    100% {
+        background-image: url("/img/gloton/g1.png");
+    }
+}
+@keyframes fruits {
+    50%{
+        opacity: .75;
+    }
+    100%{
+        opacity: 1;
+    }
+}
