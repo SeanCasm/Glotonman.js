@@ -37,7 +37,7 @@ button:hover {
     position: relative;
     width: 9px;
     height: 13px;
-    background-image: url("/img/gloton/g1.png");
+    background-image: url("img/g1.png");
 }
 .move-up-player {
     transform: rotate(-90deg);
@@ -53,25 +53,25 @@ button:hover {
 .fruit-1{
     position: relative;
     animation: fruits 2s infinite;
-    background-image: url('/img/fruits/f1.png');
+    background-image: url('img/fruits/f1.png');
     width: 12px;
     height: 12px;
 }
 @keyframes playerAnim {
     20% {
-        background-image: url("/img/gloton/g1.png");
+        background-image: url("img/gloton/g1.png");
     }
     40% {
-        background-image: url("/img/gloton/g2.png");
+        background-image: url("img/gloton/g2.png");
     }
     60% {
-        background-image: url("/img/gloton/g3.png");
+        background-image: url("img/gloton/g3.png");
     }
     80% {
-        background-image: url("/img/gloton/g2.png");
+        background-image: url("img/gloton/g2.png");
     }
     100% {
-        background-image: url("/img/gloton/g1.png");
+        background-image: url("img/gloton/g1.png");
     }
 }
 @keyframes fruits {
