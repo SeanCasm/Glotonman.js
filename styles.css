@@ -37,7 +37,7 @@ button:hover {
     position: relative;
     width: 9px;
     height: 13px;
-    background-image: url("img/g1.png");
+    background-image: url("img/gloton/g1.png");
 }
 .move-up-player {
     transform: rotate(-90deg);
