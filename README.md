@@ -3,7 +3,9 @@
 Under construction game with some html,css and javascript.
 
 # How to play
-The main objective is to eat to stay away from 100/100 hungry points.
+- The main objective is to eat to stay away from 100/100 hungry points.
+- WASD for movement.
+- Not working in mobiles.
 
-Concept game: https://seancasm.github.io/Glotonman.js/
+Early concept game: https://seancasm.github.io/Glotonman.js/
 
