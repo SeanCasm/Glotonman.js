@@ -1,6 +1,6 @@
 # Glotonman.js
 
-A game with some html,css and javascript.
+A game made with some html,css and javascript.
 
 # How to play
 Game site: https://seancasm.github.io/Glotonman.js/
