@@ -11,30 +11,24 @@ body {
     background-color: rgb(36, 42, 48);
 }
 button:hover {
-    transform: scale(1.1);
     box-shadow: 5px 5px rgba(0, 0, 0, 0.178);
 }
-.stats{
+.stats {
     background-color: rgb(70, 48, 90);
     border: 2px dashed darkcyan;
-    display: flex;
-    margin: auto;
-    justify-content: space-evenly;
+    opacity: 0;
 }
 .game-grid {
     background-color: black;
-    border: 2px dashed;
-    width: 500px;
+    border: 2px dashed blue;
+    position: relative;
+    box-shadow: 5px 5px rgba(90, 121, 72, 0.336);
+    max-width: 500px;
     height: 400px;
-    box-shadow: 20px 20px rgba(0, 0, 0, 0.178);
-}
-.game-grid-limits {
-    border: 2.5px darkblue solid;
-    height: 395px;
 }
 .player {
     animation: playerAnim 0.5s infinite;
-    position: relative;
+    position: absolute;
     width: 9px;
     height: 13px;
     background-image: url("img/gloton/g1.png");
@@ -50,10 +44,29 @@ button:hover {
 }
 .move-right-player {
 }
-.fruit-1{
-    position: relative;
-    animation: fruits 2s infinite;
-    background-image: url('img/fruits/f1.png');
+.lost {
+    font-size: 50px;
+    text-align: center;
+    margin: 0;
+    text-shadow: 2px 2px #000000;
+    animation: lost 1.5s infinite;
+    font-style: oblique;
+}
+.fixed-stats{
+    font-size: 20px;
+    text-shadow: 2px 2px #000000;
+}
+.game-over{
+    background-color: rgba(118, 131, 255, 0.5);
+    padding: 15px;
+    position: absolute;
+    width: 100%;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+}
+.fruit {
+    position: absolute;
     width: 12px;
     height: 12px;
 }
@@ -74,11 +87,18 @@ button:hover {
         background-image: url("img/gloton/g1.png");
     }
 }
-@keyframes fruits {
-    50%{
-        opacity: .75;
-    }
-    100%{
+@keyframes lost {
+    0% {
         opacity: 1;
+        color: rgb(226, 43, 43);
+    }
+    50% {
+        opacity: 0.65;
+        color: rgb(255, 136, 0);
+    }
+    100% {
+        opacity: 1;
+        color: rgb(226, 43, 43);
     }
 }
+
