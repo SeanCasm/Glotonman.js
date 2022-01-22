@@ -1,3 +1,6 @@
+const ua = navigator.userAgent;
+const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(ua);
+
 const grid = document.getElementById('screen');
 const start = document.getElementById('start');
 const player = document.createElement('div');
@@ -8,6 +11,8 @@ const hungry = document.getElementById('hungry');
 const popup = document.getElementById('popup');
 const restart = document.getElementById('restart');
 const pause = document.getElementById('pause');
+const best = document.getElementById('best');
+const mobile = isMobile ? document.getElementById('mobile') : [];
 
 let scTop = 50;
 let scLeft = 50;
@@ -16,9 +21,14 @@ let limit = 5;
 let time = 0;
 let gameScore = 0;
 let hungryPoints = 0;
-let started = false;
+let isGameStarted = false;
+let isHungry = false;
 let intervals = [];
+let movementID=0;
+
 const moveBy = 1;
+const bestScore = parseInt(localStorage.getItem('score'));
+
 class Fruit {
     static id = -1;
     constructor(score, position) {
@@ -33,38 +43,71 @@ class Fruit {
     }
 }
 
+if (!isNaN(bestScore)) {
+    best.innerHTML = `Best: ${bestScore}`;
+} else {
+    best.innerHTML = 'Best: 0';
+}
 
 const setEvents = () => {
-    pause.addEventListener("click",pauseGame);
-    document.addEventListener('keypress', playerMovement);
+    pause.addEventListener("click", pauseGame);
+
+    if (!isMobile) { 
+        document.addEventListener('keypress', playerMovement);
+        document.addEventListener('keypress', pauseGameAction);
+    } else { // mobile devices
+        const keys = ['w','s','a','d'];
+        for (let i = 0; i < 4; i++) { //create 4 buttons to append in html
+            const btn = document.createElement('button');
+            btn.classList.add('btn','btn-primary','p-4','m-1');
+            btn.addEventListener('click',()=>{playerMovement_Mobile(keys[i])});
+            if(i==0 || i==1){ //up, down buttons
+                const div = mobile.firstElementChild;
+                div.append(btn);
+            }else{ // left, right buttons
+                const div = mobile.lastElementChild;
+                div.append(btn);
+            }
+        }
+    }
 }
-const playerMovement=(e)=>{
-    switch (e.key) {
+const playerMovement_Mobile = (key) => {
+    checkKeyPressed(key);
+}
+const playerMovement = (e) => {
+    const key = e.key.toLowerCase();
+    checkKeyPressed(key);
+}
+const checkKeyPressed = (key) => {
+    switch (key) {
         case 'w':
             player.className = 'move-up-player';
-            player.style.top = `${scTop -= moveBy}%`;
-            if (scTop <= 0) player.style.top = `${scTop = 0}%`;
             player.classList.add('player');
+            clearInterval(movementID);
+            movementID=setInterval(()=>playerContinuousMovement(key),30);
             break;
         case 's':
             player.className = 'move-down-player';
-            player.style.top = `${scTop += moveBy}%`;
-            if (scTop >= 100) player.style.top = `${scTop = 100}%`;
             player.classList.add('player');
+            clearInterval(movementID);
+            movementID=setInterval(()=>playerContinuousMovement(key),30);
             break;
         case 'a':
             player.className = 'move-left-player';
-            player.style.left = `${scLeft -= moveBy}%`;
-            if (scLeft <= 0) player.style.left = `${scLeft = 0}%`;
             player.classList.add('player');
+            clearInterval(movementID);
+            movementID=setInterval(()=>playerContinuousMovement(key),30);
             break;
         case 'd':
             player.className = 'move-right-player';
-            player.style.left = `${scLeft += moveBy}%`;
-            if (scLeft >= 100) player.style.left = `${scLeft = 100}%`;
             player.classList.add('player');
+            clearInterval(movementID);
+            movementID=setInterval(()=>playerContinuousMovement(key),30);
             break;
     }
+}
+const pauseGameAction = (e) => {
+    if (e.key === 'p' && isGameStarted) pause.click();
 }
 const spawner = () => {
     if (fruits.length < limit) {
@@ -85,13 +128,14 @@ const spawner = () => {
         const fruitObj = new Fruit(10, fruit.getBoundingClientRect());
         fruits.push(fruitObj);
         fruit.id = fruitObj.id;
-        started = true;
+
+        isHungry = true;
     }
 
 }
 const timeInterval = () => {
     timer.innerHTML = `Time: ${time++}s`;
-    if (started) hungryPoints += 7;
+    if (isHungry) hungryPoints += 7;
     hungry.innerHTML = `Hungry: ${hungryPoints}/100`;
     if (hungryPoints >= 100) {
         hungry.innerHTML = `Hungry: 100/100`;
@@ -104,9 +148,33 @@ const instantiatePlayer = () => {
     player.classList.add('player');
     grid.appendChild(player);
 
-    intervals.push(setInterval(checkCollision, 150));
+    intervals.push(setInterval(checkCollisions, 150));
 }
-const checkCollision = () => {
+/**
+ * Moves the player in the direction he's looking
+ */
+const playerContinuousMovement=(key)=>{    
+    switch (key) {
+        case 'w':
+            player.style.top = `${scTop -= moveBy}%`;
+            if (scTop <= 0) player.style.top = `${scTop = 0}%`;
+            break;
+        case 's':
+            player.style.top = `${scTop += moveBy}%`;
+            if (scTop >= 100) player.style.top = `${scTop = 100}%`;
+            break;
+        case 'a':
+            player.style.left = `${scLeft -= moveBy}%`;
+            if (scLeft <= 0) player.style.left = `${scLeft = 0}%`;
+            break;
+        case 'd':
+            player.style.left = `${scLeft += moveBy}%`;
+            if (scLeft >= 100) player.style.left = `${scLeft = 100}%`;
+            break;
+    }
+    
+}
+const checkCollisions=()=>{
     for (let i = 0; i < fruits.length; i++) {
         const element = fruits[i];
         const playerPosition = player.getBoundingClientRect();
@@ -131,38 +199,52 @@ const startGame = () => {
     hungry.innerHTML = 'Hungry: 0/100';
     stats.style.opacity = 1;
     pause.disabled = restart.disabled = false;
-    
+
 
     instantiatePlayer();
-    intervals.push(setInterval(timeInterval, 1000));
-    intervals.push(setInterval(spawner, 3000));
+    intervals.push(setInterval(timeInterval, 1000), setInterval(spawner, 3000));
+
+    isGameStarted = true;
 }
 
 const gameOver = () => {
     pauseGame();
     htmlGameOver();
+    if (isNaN(bestScore)) {
+        best.innerHTML = gameScore;
+        localStorage.setItem('score', gameScore.toString());
+        return;
+    } else if (bestScore < gameScore) {
+        best.innerHTML = gameScore;
+        localStorage.setItem('score', gameScore.toString());
+    }
 }
 
 const reloadPage = () => {
     window.location.reload();
 }
-const pauseGame=()=>{
-    intervals.forEach(item=>clearInterval(item));
-    document.removeEventListener("keypress",playerMovement);
+const pauseGame = () => {
+    intervals.forEach(item => clearInterval(item));
+    intervals = [];
+    clearInterval(movementID); // stops the player movement interval
+    document.removeEventListener("keypress", playerMovement);
     pause.innerHTML = 'Unpause';
-    pause.removeEventListener("click",pauseGame);
-    pause.addEventListener("click",unpauseGame);
+    pause.removeEventListener("click", pauseGame);
+    pause.addEventListener("click", unpauseGame);
 
-    player.style.animationPlayState='paused';
+    player.style.animationPlayState = 'paused';
 }
-const unpauseGame=()=>{
-    setInterval(timeInterval, 1000);
-    setInterval(spawner, 3000);
-    setInterval(checkCollision, 150);
-    pause.removeEventListener("click",unpauseGame);
-    pause.addEventListener("click",pauseGame);
-    document.addEventListener('keypress', playerMovement);
-    player.style.animationPlayState='running';
+const unpauseGame = () => {
+    intervals.push(
+        setInterval(timeInterval, 1000),
+        setInterval(spawner, 3000),
+        setInterval(checkCollisions, 150)
+    );
+    pause.removeEventListener("click", unpauseGame);
+    pause.addEventListener("click", pauseGame);
+    if (!isMobile) document.addEventListener('keypress', playerMovement);
+    player.style.animationPlayState = 'running';
+    pause.innerHTML = 'Pause';
 }
 const htmlGameOver = () => {
     const p = document.createElement('p');
@@ -175,7 +257,7 @@ const htmlGameOver = () => {
     stats.appendChild(restart);
     popup.appendChild(stats);
 
-    pause.disabled=true;
+    pause.disabled = true;
 }
 
 setEvents();
