@@ -9,3 +9,6 @@ Game site: https://seancasm.github.io/Glotonman.js/
 - **WASD** for directional movement.
 - **P** to pause the game.
 
+## Future updates
+### Glotonman.js v1.2
+- Enemies, to make the game more difficult.
