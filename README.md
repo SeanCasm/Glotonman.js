@@ -10,5 +10,5 @@ Game site: https://seancasm.github.io/Glotonman.js/
 - **P** to pause the game.
 
 ## Future updates
-### Glotonman.js v1.2
-- Enemies, to make the game more difficult.
+### v1.2
+- Progressive difficulty level system.
