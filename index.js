@@ -1,33 +1,45 @@
 const ua = navigator.userAgent;
 const isMobile = /Android|webOS|iPhone|iPad|iPod/i.test(ua);
 
-const grid = document.getElementById('screen');
-const start = document.getElementById('start');
-const player = document.createElement('div');
-const timer = document.getElementById('timer');
-const score = document.getElementById('score');
-const stats = document.getElementById('stats');
-const hungry = document.getElementById('hungry');
-const popup = document.getElementById('popup');
-const restart = document.getElementById('restart');
-const pause = document.getElementById('pause');
-const best = document.getElementById('best');
-const mobile = isMobile ? document.getElementById('mobile') : [];
+let grid = document.getElementById('screen');
+let start = document.getElementById('start');
+let player = document.createElement('div');
+let timer = document.getElementById('timer');
+let score = document.getElementById('score');
+let stats = document.getElementById('stats');
+let hungry = document.getElementById('hungry');
+let popup = document.getElementById('popup');
+let restart = document.getElementById('restart');
+let pause = document.getElementById('pause');
+let best = document.getElementById('best');
+let mobile = isMobile ? document.getElementById('mobile') : [];
+let level = document.getElementById('level');
 
 let scTop = 50;
 let scLeft = 50;
 let fruits = [];
-let limit = 5;
+let ghosts = [];
+let limit = 7;  // fruit generation limit
 let time = 0;
+let firstMove = false;
 let gameScore = 0;
 let hungryPoints = 0;
 let isGameStarted = false;
 let isHungry = false;
-let intervals = [];
-let movementID=0;
+let intervals = []; //collection of all game intervals
+let movementID = 0;
+let movementBackup = 'key'; // stores the current player movement key
+let currentLevel = 1;
 
-const moveBy = 1;
+const moveBy = 1;   //player movement
+
 const bestScore = parseInt(localStorage.getItem('score'));
+
+if (!isNaN(bestScore)) {
+    best.innerHTML = `Best: ${bestScore}`;
+} else {
+    best.innerHTML = 'Best: 0';
+}
 
 class Fruit {
     static id = -1;
@@ -43,95 +55,136 @@ class Fruit {
     }
 }
 
-if (!isNaN(bestScore)) {
-    best.innerHTML = `Best: ${bestScore}`;
-} else {
-    best.innerHTML = 'Best: 0';
+class Ghost {
+    movementPattern = [];
+    targetPoint = {};
+    constructor(position, elementRef) {
+        this.position = position;
+        this.elementRef = elementRef;
+        this.speed = 1;
+        this.iteration = 0;
+        this.generatePattern();
+        this.startInterval();
+    }
+    get screenInfo() {
+        return this.elementRef.getBoundingClientRect();
+    }
+    movement() {
+        let { x, y } = this.distanceBetween();
+        x = parseInt(x);
+        y = parseInt(y);
+        const angle = Math.atan2(y, x);
+
+        const xVel = this.speed * Math.cos(angle);
+        const yVel = this.speed * Math.sin(angle);
+
+        this.elementRef.style.top = `${this.position.top += yVel}%`;
+        this.elementRef.style.left = `${this.position.left += xVel}%`;
+        if (x == 0 && y == 0) {
+            this.iteration++;
+            if (this.iteration == this.movementPattern.length) this.iteration = 0;
+            this.targetPoint = this.movementPattern[this.iteration];
+        }
+
+    }
+    set animationState(state=''){
+        this.elementRef.style.animationPlayState = state;
+    }
+    startInterval() {
+        this.curIntervalID = setInterval(() => this.movement(), 50);
+        intervals.push(this.curIntervalID);
+    }
+    distanceBetween() {
+        const distance = {
+            x: this.targetPoint.left - this.position.left,
+            y: this.targetPoint.top - this.position.top
+        }
+        return distance;
+    }
+    generatePattern() {
+
+        for (let i = 0; i < 5; i++) {
+            const top = parseInt(Math.random() * (100 - 1) + 1);
+            const left = parseInt(Math.random() * (100 - 1) + 1);
+            this.movementPattern.push({ top, left });
+        }
+        this.targetPoint = this.movementPattern[0];
+    }
 }
 
 const setEvents = () => {
     pause.addEventListener("click", pauseGame);
 
-    if (!isMobile) { 
+    if (!isMobile) {
         document.addEventListener('keypress', playerMovement);
         document.addEventListener('keypress', pauseGameAction);
     } else { // mobile devices
-        const keys = ['w','s','a','d'];
+        const keys = ['W', 'S', 'A', 'D'];
         for (let i = 0; i < 4; i++) { //create 4 buttons to append in html
+
             const btn = document.createElement('button');
-            btn.classList.add('btn','btn-primary','p-4','m-1');
-            btn.addEventListener('click',()=>{playerMovement_Mobile(keys[i])});
-            if(i==0 || i==1){ //up, down buttons
+            btn.textContent = keys[i];
+            btn.style.width = '45px';
+            btn.classList.add('btn', 'btn-primary', 'p-3', 'm-2');
+            btn.addEventListener('click', () => { setMovement(keys[i]) });
+
+
+            if (i == 0 || i == 1) { //up, down buttons
                 const div = mobile.firstElementChild;
                 div.append(btn);
-            }else{ // left, right buttons
+            } else { // left, right buttons
                 const div = mobile.lastElementChild;
                 div.append(btn);
             }
         }
     }
 }
-const playerMovement_Mobile = (key) => {
-    checkKeyPressed(key);
-}
-const playerMovement = (e) => {
-    const key = e.key.toLowerCase();
-    checkKeyPressed(key);
-}
-const checkKeyPressed = (key) => {
-    switch (key) {
-        case 'w':
-            player.className = 'move-up-player';
-            player.classList.add('player');
-            clearInterval(movementID);
-            movementID=setInterval(()=>playerContinuousMovement(key),30);
-            break;
-        case 's':
-            player.className = 'move-down-player';
-            player.classList.add('player');
-            clearInterval(movementID);
-            movementID=setInterval(()=>playerContinuousMovement(key),30);
-            break;
-        case 'a':
-            player.className = 'move-left-player';
-            player.classList.add('player');
-            clearInterval(movementID);
-            movementID=setInterval(()=>playerContinuousMovement(key),30);
-            break;
-        case 'd':
-            player.className = 'move-right-player';
-            player.classList.add('player');
-            clearInterval(movementID);
-            movementID=setInterval(()=>playerContinuousMovement(key),30);
-            break;
-    }
-}
-const pauseGameAction = (e) => {
-    if (e.key === 'p' && isGameStarted) pause.click();
-}
-const spawner = () => {
+
+const fruitSpawner = () => {
     if (fruits.length < limit) {
         const fruit = document.createElement('div');
-        let top = parseInt(Math.random() * (100 - 1) + 1);
-        let left = parseInt(Math.random() * (100 - 1) + 1);
+        spawner(fruit);
         let fruitNumber = parseInt(Math.random() * (4 - 1) + 1);
-        if (top <= 0) fruit.style.top = '0%';
-        if (top >= 100) fruit.style.top = '100%';
-        if (left <= 0) fruit.style.left = '0%';
-        if (left >= 100) fruit.style.left = '100%';
 
-        fruit.style.top = `${top}%`;
-        fruit.style.left = `${left}%`;
         fruit.style.backgroundImage = `url(img/fruits/f${fruitNumber}.png)`;
         fruit.classList.add('fruit');
+
         grid.appendChild(fruit);
         const fruitObj = new Fruit(10, fruit.getBoundingClientRect());
         fruits.push(fruitObj);
+
         fruit.id = fruitObj.id;
 
         isHungry = true;
     }
 
+}
+const ghostSpawner = () => {
+    if (currentLevel < 11) {
+        let ghost = document.createElement('div');
+        const { top, left } = spawner(ghost);
+        const ghostSprite = Math.random() >= 0.5 ? 'pink' : 'red';
+        ghost.style.backgroundImage = `url(img/ghosts/${ghostSprite}/${ghostSprite}-1.png)`;
+        ghost.classList.add(`ghost-${ghostSprite}`);
+        grid.appendChild(ghost);
+
+        const newGhost = new Ghost({ top, left }, ghost, ghost.getBoundingClientRect());
+        ghosts.push(newGhost);
+    }
+}
+const spawner = (element) => {
+    let top = parseInt(Math.random() * (100 - 1) + 1);
+    let left = parseInt(Math.random() * (100 - 1) + 1);
+
+    if (top <= 0) top = 0;
+    if (top >= 100) top = 100;
+    if (left <= 0) left = 0;
+    if (left >= 100) left = 100;
+
+    element.style.top = `${top}%`;
+    element.style.left = `${left}%`;
+
+    return { top, left };
 }
 const timeInterval = () => {
     timer.innerHTML = `Time: ${time++}s`;
@@ -147,14 +200,35 @@ const instantiatePlayer = () => {
     player.style.top = `${scTop}%`;
     player.classList.add('player');
     grid.appendChild(player);
-
     intervals.push(setInterval(checkCollisions, 150));
+}
+const playerMovement = ({ key }) => {
+    setMovement(key.toLowerCase());
+}
+/**
+ * Sets the player movement direction and update his position
+ * @param {*} key 
+ */
+const setMovement = (key) => {
+    if (key == 'w' || key == 's' || key == 'a' || key == 'd') {
+        movementBackup = key;
+        player.className = `move-${key}-player`;
+        player.classList.add('player');
+
+        if (!firstMove) {
+            movementID = setInterval(() => playerContinuousMovement(), 30);
+            firstMove = true;
+        }
+    }
+}
+const pauseGameAction = (e) => {
+    if (e.key === 'p' && isGameStarted) pause.click();
 }
 /**
  * Moves the player in the direction he's looking
  */
-const playerContinuousMovement=(key)=>{    
-    switch (key) {
+const playerContinuousMovement = () => {
+    switch (movementBackup) {
         case 'w':
             player.style.top = `${scTop -= moveBy}%`;
             if (scTop <= 0) player.style.top = `${scTop = 0}%`;
@@ -172,39 +246,43 @@ const playerContinuousMovement=(key)=>{
             if (scLeft >= 100) player.style.left = `${scLeft = 100}%`;
             break;
     }
-    
 }
-const checkCollisions=()=>{
+const checkCollisions = () => {
+    const playerPosition = player.getBoundingClientRect();
+
+    //Fruits
     for (let i = 0; i < fruits.length; i++) {
         const element = fruits[i];
-        const playerPosition = player.getBoundingClientRect();
-        if (closeToFruit(playerPosition, element.position)) {
+        if (colliderCheck(playerPosition, element.position)) {
             score.innerHTML = `Score: ${gameScore += element.score}`;
-            element.removeSelf();
             hungryPoints = 0;
-            fruits.splice(i, 1);
+            hungry.innerHTML = `Hungry: 0/100`;
+
+            if (gameScore / 80 >= currentLevel) {
+                currentLevel++;
+                level.innerHTML = `Level: ${currentLevel}`;
+                ghostSpawner();
+            }
+
+            element.removeSelf();
+            fruits[i] = null;
+            fruits = fruits.filter(n => n != null);
+
+        }
+    }
+    //Ghosts
+    for (let i = 0; i < ghosts.length; i++) {
+        const element = ghosts[i];
+        if (colliderCheck(playerPosition, element.screenInfo)) {
+            gameOver();
         }
     }
 }
-const closeToFruit = (playerPosition, element) => {
+const colliderCheck = (playerPosition, element) => {
     return (playerPosition.x < element.x + element.width &&
         playerPosition.x + playerPosition.width > element.x &&
         playerPosition.y < element.y + element.height &&
         playerPosition.height + playerPosition.y > element.y)
-}
-const startGame = () => {
-    start.disabled = true;
-    score.innerHTML = `Score: 0`;
-    timer.innerHTML = 'Time: 0s';
-    hungry.innerHTML = 'Hungry: 0/100';
-    stats.style.opacity = 1;
-    pause.disabled = restart.disabled = false;
-
-
-    instantiatePlayer();
-    intervals.push(setInterval(timeInterval, 1000), setInterval(spawner, 3000));
-
-    isGameStarted = true;
 }
 
 const gameOver = () => {
@@ -223,6 +301,22 @@ const gameOver = () => {
 const reloadPage = () => {
     window.location.reload();
 }
+const startGame = () => {
+    start.disabled = true;
+    score.innerHTML = `Score: 0`;
+    timer.innerHTML = 'Time: 0s';
+    hungry.innerHTML = 'Hungry: 0/100';
+    stats.style.opacity = 1;
+    pause.disabled = restart.disabled = false;
+
+    instantiatePlayer();
+    intervals.push(setInterval(timeInterval, 1000), setInterval(fruitSpawner, 3000));
+
+    level.innerText = 'Level 1';
+    grid.scrollIntoView();
+
+    isGameStarted = true;
+}
 const pauseGame = () => {
     intervals.forEach(item => clearInterval(item));
     intervals = [];
@@ -232,17 +326,32 @@ const pauseGame = () => {
     pause.removeEventListener("click", pauseGame);
     pause.addEventListener("click", unpauseGame);
 
-    player.style.animationPlayState = 'paused';
+    for (const iterator of ghosts) {
+        iterator.animationState = 'paused';
+    }
+
+    player.style.animationPlayState = 'paused'; //pause the player animation
 }
 const unpauseGame = () => {
-    intervals.push(
+    intervals.push( //restart all game invertals
         setInterval(timeInterval, 1000),
-        setInterval(spawner, 3000),
+        setInterval(fruitSpawner, 3000),
         setInterval(checkCollisions, 150)
     );
+    for (const iterator of ghosts) {
+        iterator.startInterval();
+        iterator.animationState = 'running';
+    }
+
+    firstMove = false;
+
     pause.removeEventListener("click", unpauseGame);
     pause.addEventListener("click", pauseGame);
+
     if (!isMobile) document.addEventListener('keypress', playerMovement);
+
+    setMovement(movementBackup);
+
     player.style.animationPlayState = 'running';
     pause.innerHTML = 'Pause';
 }

@@ -22,9 +22,27 @@ button:hover {
     background-color: black;
     border: 2px dashed blue;
     position: relative;
-    box-shadow: 5px 5px rgba(90, 121, 72, 0.336);
     max-width: 500px;
     height: 400px;
+}
+@media (max-width: 468px) {
+    .game-grid {
+        height: 220px;
+    }
+}
+.ghost-pink {
+    animation: ghost-pink 0.5s infinite;
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background-image: url("img/ghosts/pink/pink-1.png");
+}
+.ghost-red {
+    animation: ghost-red 0.5s infinite;
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    background-image: url("img/ghosts/red/red-1.png");
 }
 .player {
     animation: playerAnim 0.5s infinite;
@@ -33,16 +51,16 @@ button:hover {
     height: 13px;
     background-image: url("img/gloton/g1.png");
 }
-.move-up-player {
+.move-w-player {
     transform: rotate(-90deg);
 }
-.move-down-player {
+.move-s-player {
     transform: rotate(90deg);
 }
-.move-left-player {
+.move-a-player {
     transform: rotate(-180deg);
 }
-.move-right-player {
+.move-d-player {
 }
 .lost {
     font-size: 50px;
@@ -52,11 +70,11 @@ button:hover {
     animation: lost 1.5s infinite;
     font-style: oblique;
 }
-.fixed-stats{
+.fixed-stats {
     font-size: 20px;
     text-shadow: 2px 2px #000000;
 }
-.game-over{
+.game-over {
     background-color: rgba(118, 131, 255, 0.5);
     padding: 15px;
     position: absolute;
@@ -69,6 +87,22 @@ button:hover {
     position: absolute;
     width: 12px;
     height: 12px;
+}
+@keyframes ghost-pink {
+    50% {
+        background-image: url("img/ghosts/pink/pink-1.png");
+    }
+    100% {
+        background-image: url("img/ghosts/pink/pink-2.png");
+    }
+}
+@keyframes ghost-red {
+    50% {
+        background-image: url("img/ghosts/red/red-1.png");
+    }
+    100% {
+        background-image: url("img/ghosts/red/red-2.png");
+    }
 }
 @keyframes playerAnim {
     20% {
@@ -101,4 +135,3 @@ button:hover {
         color: rgb(226, 43, 43);
     }
 }
-
