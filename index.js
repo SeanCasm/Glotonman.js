@@ -210,6 +210,7 @@ const playerMovement = ({ key }) => {
  * @param {*} key 
  */
 const setMovement = (key) => {
+    key = key.toLowerCase();
     if (key == 'w' || key == 's' || key == 'a' || key == 'd') {
         movementBackup = key;
         player.className = `move-${key}-player`;
